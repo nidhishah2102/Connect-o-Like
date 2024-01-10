@@ -1,0 +1,11 @@
+.glowable-text {
+    color: rgb(0, 0, 0);
+  }
+<<<<<<< HEAD
+
+=======
+  
+>>>>>>> e6307b4d1c9193e0b9e73719e0cbbb18ffeba5ea
+  [glow] .glowable-text {
+    color: var(--glow-color);
+  }
