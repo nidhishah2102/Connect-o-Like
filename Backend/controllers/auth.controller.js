@@ -1,7 +1,6 @@
 const User = require("../models/user.model.js");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const Logo =require ('../models/logo.model.js')
 exports.loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -13,58 +12,37 @@ exports.loginUser = async (req, res) => {
     if (!passwordMatch) {
       return res.status(401).json({ error: "Invalid credentials" });
     }
-    const token = jwt.sign({ userId: user._id }, process.env.NODE_APP_SECRET, {
+    const token = jwt.sign({ userId: user._id }, "secret", {
       expiresIn: "1h",
     });
-    res.status(200).json({ token ,user,message:"Success" });
+    res.status(200).json({ token, user, message: "Success" });
   } catch (error) {
-    console.error(error);
+    console.log(error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
 exports.registerUser = async (req, res) => {
   try {
-    const { username, email, password, skills, location, domain } = req.body;
+    const { name, email, password, skills, experience, domain } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = new User({
-      username,
+      name,
       email,
       password: hashedPassword,
       skills,
-      location,
+      experience,
       domain,
     });
     const savedUser = await newUser.save();
     res.status(201).json(savedUser);
   } catch (error) {
+    if (error.code === 11000) {
+      return res
+        .status(400)
+        .json({ error: "Mobile number/email already exists." });
+    }
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
-exports.uploadLogo= async (req, res) => {
-  try {
-    // Ensure a file is uploaded
-    if (!req.file) {
-      return res.status(400).json({ error: 'No file uploaded' });
-    }
-
-    // Find the existing CommonLogo document, or create a new one if none exists
-    let commonLogo = await Logo.findOne();
-    if (!commonLogo) {
-      commonLogo = new Logo();
-    }
-
-    // Update the existing or new CommonLogo document with the new logo data
-    commonLogo.logo = req.file.buffer.toString('base64');
-    await commonLogo.save();
-
-    return res.status(201).json({ message: 'Logo uploaded successfully', logoId: commonLogo._id });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Internal Server Error' });
-  }
-}
-
-
-

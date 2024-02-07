@@ -1,18 +1,27 @@
 import React, { Fragment, useState } from "react";
 import { Transition, Menu } from "@headlessui/react";
 import { useNavigate } from "react-router-dom";
-import { FiMenu,  } from "react-icons/fi";
+import { FiMenu } from "react-icons/fi";
+import { useSelector, useDispatch } from "react-redux";
 import { RxCross2 } from "react-icons/rx";
-
-const Navbar = ({ onMenuItemClick }) => {
+import { Link } from "react-scroll";
+import { logoutUser } from "../store/action";
+import toast from "react-hot-toast";
+const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [activeMenuItem, setActiveMenuItem] = useState("");
+  const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
+
+  const userData = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const handleMenuItemClick = (menuItem) => {
-    setActiveMenuItem(menuItem); // Callback to update the selected menu item in the Main component
-    onMenuItemClick(menuItem);
-    setIsMobileMenuOpen(false); // Close mobile menu after selecting an item
+  const handleLogout = () => {
+    dispatch(logoutUser());
+    navigate("/");
+    toast.success("Logout successful!");
+  };
+  const handleAccount = () => {
+    navigate("/myaccount");
   };
 
   return (
@@ -22,7 +31,7 @@ const Navbar = ({ onMenuItemClick }) => {
         aria-label="Global"
       >
         <div className="flex items-center justify-between">
-          <div className="flex justify-center items-center">
+          <div className="flex justify-center items-center cursor-pointer">
             <svg
               fill="#fff"
               version="1.1"
@@ -49,9 +58,9 @@ const Navbar = ({ onMenuItemClick }) => {
               </g>
             </svg>
             <a
-              className="text-white flex-none text-xl font-semibold mx-2"
+              className="text-white flex-none text-xl font-semibold mx-2  cursor-pointer"
               aria-label="Brand"
-              onClick={() => handleMenuItemClick("home")}
+              href="/dashboard"
             >
               ConX
             </a>
@@ -61,33 +70,16 @@ const Navbar = ({ onMenuItemClick }) => {
             <Menu>
               <Menu.Button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="hs-collapse-toggle w-8 h-8 flex justify-center items-center text-sm font-semibold rounded-full border border-gray-200 text-gray-800 disabled:opacity-50 disabled:pointer-events-none"
+                className="hs-collapse-toggle w-8 h-8 flex justify-center items-center text-sm font-semibold rounded-full border border-gray-200 text-gray-200 disabled:opacity-50 disabled:pointer-events-none"
                 data-hs-collapse="#navbar-collapse-with-animation"
                 aria-controls="navbar-collapse-with-animation"
                 aria-label="Toggle navigation"
               >
-                <Transition
-                  show={!isMobileMenuOpen}
-                  enter="transition-transform transform ease-in-out duration-300"
-                  enterFrom="transform -rotate-90"
-                  enterTo="transform rotate-0"
-                  leave="transition-transform transform ease-in-out duration-300"
-                  leaveFrom="transform rotate-0"
-                  leaveTo="transform -rotate-90"
-                >
+                {isMobileMenuOpen ? (
+                  <RxCross2 className="flex-shrink-0 w-4 h-4 text-white" />
+                ) : (
                   <FiMenu className="flex-shrink-0 w-4 h-4 text-white" />
-                </Transition>
-                <Transition
-                  show={isMobileMenuOpen}
-                  enter="transition-transform transform ease-in-out duration-300"
-                  enterFrom="transform rotate-90"
-                  enterTo="transform rotate-0"
-                  leave="transition-transform transform ease-in-out duration-300"
-                  leaveFrom="transform rotate-0"
-                  leaveTo="transform rotate-90"
-                >
-                  <RxCross2 className="hidden flex-shrink-0 w-4 h-4 hover:text-[#000]" />
-                </Transition>
+                )}
               </Menu.Button>
             </Menu>
           </div>
@@ -96,69 +88,152 @@ const Navbar = ({ onMenuItemClick }) => {
           id="navbar-collapse-with-animation"
           className="hs-collapse hidden overflow-hidden transition-all duration-300 basis-full grow md:block"
         >
-         <div className="flex flex-col gap-y-4 gap-x-0 mt-5 md:flex-row md:items-center md:justify-end md:gap-y-0 md:gap-x-7 md:mt-0 md:ps-7">
-    {/* Your main menu items for desktop screens */}
-    <a
-      className={`font-medium ${
-        activeMenuItem === "aboutus" ? "text-white" : "text-gray-200"
-      } hover:text-white`}
-      
-      aria-current="page"
-      onClick={() => handleMenuItemClick("aboutus")}
-    >
-      About us
-    </a>
-    <a
-      className={`font-medium ${
-        activeMenuItem === "whatwedo" ? "text-white" : "text-gray-200"
-      } hover:text-white md:py-6 dark:text-gray-400 dark:hover:text-gray-200`}
-   
-      onClick={() => handleMenuItemClick("whatwedo")}
-    >
-      What we do
-    </a>
-    <a
-      className={`font-medium ${
-        activeMenuItem === "testimonials" ? "text-white" : "text-gray-200"
-      } hover:text-white md:py-6 dark:text-gray-400 dark:hover:text-gray-200`}
-      
-      onClick={() => handleMenuItemClick("testimonials")}
-    >
-      Testimonials
-    </a>
-    {/* <a
-      className={`font-medium ${
-        activeMenuItem === "contactus" ? "text-white" : "text-gray-200"
-      } hover:text-white md:py-6 dark:text-gray-400 dark:hover:text-gray-500`}
-      
-      onClick={() => handleMenuItemClick("contactus")}
-    >
-      Contact us
-    </a> */}
+          <div className="flex flex-col gap-y-4 gap-x-0 mt-5 md:flex-row md:items-center md:justify-end md:gap-y-0 md:gap-x-7 md:mt-0 md:ps-7">
+            {/* Your main menu items for desktop screens */}
+            <a
+              className={`font-medium  hover:text-gray-200 text-gray-400`}
+              aria-current="page"
+              href={isLoggedIn ? "/connections" : "/aboutus"}
+            >
+              {isLoggedIn ? (
+                <>Connections</>
+              ) : (
+                <Link
+                  to="aboutus"
+                  smooth={true}
+                  duration={500}
+                  spy={true}
+                  exact="true"
+                  offset={-70}
+                >
+                  About us
+                </Link>
+              )}
+            </a>
 
+            <a
+              className={`font-medium hover:text-white md:py-6 text-gray-400 dark:hover:text-gray-200 cursor-pointer`}
+              href={isLoggedIn ? "/myaccount" : "/"}
+            >
+              {isLoggedIn ? (
+                <>My Account</>
+              ) : (
+                <Link
+                  to="test"
+                  smooth={true}
+                  duration={500}
+                  spy={true}
+                  exact="true"
+                  offset={-70}
+                >
+                  Testimonials
+                </Link>
+              )}
+            </a>
 
             {/* Log in button */}
-            <a
-              className="flex items-center gap-x-2 font-medium cursor-pointer text-gray-200 hover:text-white md:border-s md:border-gray-300 md:my-6 md:ps-6 dark:border-gray-700 dark:text-gray-400 dark:hover:text-blue-500"
-              onClick={() => navigate("/signup")}
-            >
-              <svg
-                className="flex-shrink-0 w-4 h-4"
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+            {isLoggedIn ? (
+              <div className="font-primary">
+                <div className="flex-shrink-0 group block ">
+                  {/* User Image */}
+                  <Menu>
+                    <Menu.Button>
+                      <div className="flex items-center rounded-[16px]">
+                        <img
+                          className="inline-block flex-shrink-0 h-[2.3rem] w-[2.3rem] object-cover rounded-full transition-opacity cursor-pointer"
+                          src={
+                            userData.profile
+                              ? `data:image/png;base64,${userData.profile}`
+                              : "https://img.freepik.com/free-vector/illustration-businessman_53876-5856.jpg?w=740&t=st=1707217366~exp=1707217966~hmac=c69010fa42c07b6119e668deeb5566763c01553ae42e29782d155d406d0b6575"
+                          }
+                          alt="User Avatar"
+                        />
+                      </div>
+                    </Menu.Button>
+                    {/* User Dropdown */}
+                    <Transition
+                      as={Fragment}
+                      enter="transition ease-out duration-100"
+                      enterFrom="transform opacity-0 scale-95"
+                      enterTo="transform opacity-100 scale-100"
+                      leave="transition ease-in duration-75"
+                      leaveFrom="transform opacity-100 scale-100"
+                      leaveTo="transform opacity-0 scale-95"
+                    >
+                      <Menu.Items className="origin-top-right absolute right-8 mt-4 w-48  shadow-lg bg-white rounded-lg text-black ring-1 ring-black ring-opacity-5 focus:outline-none z-99">
+                        <div className="py-1">
+                          <Menu.Item>
+                            {({ active }) => (
+                              <div
+                                onClick={handleAccount}
+                                className={`text-gray-800  px-4 py-2 hover:bg-white cursor-pointer ${
+                                  active ? "bg-gray-200" : ""
+                                }`}
+                              >
+                                <p className="text-sm font-medium">
+                                  {userData.name}
+                                </p>
+                                <p className="text-xs text-gray-700">
+                                  {userData.email}
+                                </p>
+                              </div>
+                            )}
+                          </Menu.Item>
+                          <Menu.Item>
+                            {({ active }) => (
+                              <div
+                                className={`text-gray-800 hover:bg-white flex items-center gap-x-1 hover:text-red-500 cursor-pointer px-4 py-2 ${
+                                  active ? "bg-gray-200" : ""
+                                }`}
+                                onClick={handleLogout}
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  strokeWidth={1.5}
+                                  stroke="currentColor"
+                                  className="w-4 h-4"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M8.25 9V5.25A2.25 2.25 0 0 1 10.5 3h6a2.25 2.25 0 0 1 2.25 2.25v13.5A2.25 2.25 0 0 1 16.5 21h-6a2.25 2.25 0 0 1-2.25-2.25V15m-3 0-3-3m0 0 3-3m-3 3H15"
+                                  />
+                                </svg>
+                                Logout
+                              </div>
+                            )}
+                          </Menu.Item>
+                        </div>
+                      </Menu.Items>
+                    </Transition>
+                  </Menu>
+                </div>
+              </div>
+            ) : (
+              <a
+                className="flex items-center gap-x-2 font-medium cursor-pointer text-gray-200  md:border-s md:border-gray-300 md:my-6 md:ps-6 dark:border-gray-700 dark:text-gray-400 hover:text-[#a296ff]"
+                onClick={() => navigate("/login")}
               >
-                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
-              Log in
-            </a>
+                <svg
+                  className="flex-shrink-0 w-4 h-4"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+                Log in
+              </a>
+            )}
           </div>
         </div>
         {/* Mobile Menu */}
@@ -173,47 +248,34 @@ const Navbar = ({ onMenuItemClick }) => {
                   <div className="flex flex-col gap-y-4 py-2 px-4">
                     {/* Your mobile menu items */}
                     <a
-                      className="font-medium text-blue-600 py-2"
-                      
+                      className="font-medium text-gray-400 py-2 hover:text-white"
                       aria-current="page"
-                      onClick={() => handleMenuItemClick("landing")}
                     >
-                      Landing
+                      <Link
+                        to="aboutus"
+                        smooth={true}
+                        duration={500}
+                        spy={true}
+                        exact="true"
+                        offset={-70}
+                      >
+                        About us
+                      </Link>
                     </a>
                     <a
-                      className="font-medium text-gray-500 hover:text-gray-400 py-2"
-                      
-                      onClick={() => handleMenuItemClick("account")}
+                      className="font-medium text-gray-400 py-2 hover:text-white"
+                      aria-current="page"
                     >
-                      Account
-                    </a>
-                    <a
-                      className="font-medium text-gray-500 hover:text-gray-400 py-2"
-                      
-                      onClick={() => handleMenuItemClick("work")}
-                    >
-                      Work
-                    </a>
-                    <a
-                      className="font-medium text-gray-500 hover:text-gray-400 py-2"
-                      
-                      onClick={() => handleMenuItemClick("blog")}
-                    >
-                      Blog
-                    </a>
-                    <a
-                      className="font-medium text-gray-500 hover:text-gray-400 py-2"
-                      
-                      onClick={() => handleMenuItemClick("downloads")}
-                    >
-                      Downloads
-                    </a>
-                    <a
-                      className="font-medium text-gray-500 hover:text-gray-400 py-2"
-                      
-                      onClick={() => handleMenuItemClick("teamaccount")}
-                    >
-                      Team Account
+                      <Link
+                        to="test"
+                        smooth={true}
+                        duration={500}
+                        spy={true}
+                        exact="true"
+                        offset={-70}
+                      >
+                        Testimonials
+                      </Link>
                     </a>
                   </div>
                 </Menu.Items>
